@@ -80,6 +80,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
                 c.ready = false;
 				trace("readClientMessage(): client not ready");
 				// FIXME: Infinite loop issue.
+				break;
             }
         }
         
