@@ -33,11 +33,24 @@ class Server extends ThreadServer<ClientData, ByteArray>
     }
     
     static inline var headerLength:Int = 2;
+	
+	function sendFlashPolicy(s:Socket)
+	{
+		trace("Sending flash policy");
+		sendData(s, '<?xml version="1.0"?>\n<cross-domain-policy>\n   <site-control permitted-cross-domain-policies="all"/>\n   <allow-access-from domain="*" to-ports="' + Defs.PORT + '"/>\n   <allow-http-request-headers-from domain="*" headers="*"/>\n</cross-domain-policy>\n');
+	}
     
     override function readClientMessage(c:ClientData, buf:Bytes, pos:Int, len:Int)
     {
 		trace("readClientMessage(..., len=" + len + ")");
+		trace("buf: " + buf.sub(0, len).toString());
         var bytesConsumed = 0;
+		
+		if (buf.toString().indexOf("<policy-file-request/>") >= 0) {
+			trace("Received a policy request");
+			sendFlashPolicy(c.socket);
+			bytesConsumed = len;
+		}
         
         while (len > 0)
         {
@@ -46,7 +59,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
             var b1:UInt = buf.get(pos);
             var b2:UInt = buf.get(pos+1);
             var waitFor:UInt = (b1 << 8) + b2;
-            
+			
             if (len > waitFor)
             {
                 var sub = buf.sub(pos+headerLength, waitFor);
@@ -65,11 +78,12 @@ class Server extends ThreadServer<ClientData, ByteArray>
             else
             {
                 c.ready = false;
-				break;
+				trace("readClientMessage(): client not ready");
+				// FIXME: Infinite loop issue.
             }
         }
         
-		trace("readClientMessage(): returning");
+		// trace("readClientMessage(): returning");
         return { msg : null, bytes : bytesConsumed };
     }
     
@@ -238,6 +252,8 @@ class Server extends ThreadServer<ClientData, ByteArray>
         }
         
         s.setFastSend(true);
+		
+		sendFlashPolicy(s);
         
         var c = new ClientData(s);
         clients.set(c.guid, c);
@@ -334,7 +350,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
     
     public function attemptWrite(c:ClientData)
     {
-        trace("attemptWrite()");
+        //trace("attemptWrite()");
         var socket = c.socket;
         
         try
