@@ -36,6 +36,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
     
     override function readClientMessage(c:ClientData, buf:Bytes, pos:Int, len:Int)
     {
+		trace("readClientMessage(..., len=" + len + ")");
         var bytesConsumed = 0;
         
         while (len > 0)
@@ -50,7 +51,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
             {
                 var sub = buf.sub(pos+headerLength, waitFor);
                 ba = ByteArray.fromBytes(sub);
-                //trace("msg length: " + waitFor);
+                trace("msg length: " + waitFor);
                 
                 c.ready = true;
                 
@@ -64,14 +65,17 @@ class Server extends ThreadServer<ClientData, ByteArray>
             else
             {
                 c.ready = false;
+				break;
             }
         }
         
+		trace("readClientMessage(): returning");
         return { msg : null, bytes : bytesConsumed };
     }
     
     function readMessage(c:ClientData, msg:ByteArray)
     {
+		trace("readMessage()");
         var id = c.guid;
         var char = chars.get(id);
         
@@ -209,6 +213,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
     
     function dead(guid:Guid)
     {
+        trace(Date.now().toString() + ": " + guid + " dead");
         var client = clients.get(guid);
         client.ready = false;
         waitForRespawn[guid] = client;
@@ -225,6 +230,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
     
     override function clientConnected(s:Socket):ClientData
     {
+		trace("clientConnected()");
         if (clientCount >= 50) 
         {
             s.close();
@@ -245,6 +251,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
     function spawn(c:ClientData, newChar:Bool=true)
     {
         if (newChar) trace(Date.now().toString() + ": client connected: " + c.guid);
+        else trace("spawn(..., newChar=false)");
         
         var char:Stabber = StabberPool.get(c.guid, true);
         char.x = Std.random(Defs.WORLD_WIDTH);
@@ -315,6 +322,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
     
     function spawnRandom()
     {
+        trace("spawnRandom()");
         var newGuid = getGuid();
         var char:Stabber = StabberPool.get(newGuid, false);
         char.x = Std.random(Defs.WORLD_WIDTH);
@@ -326,6 +334,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
     
     public function attemptWrite(c:ClientData)
     {
+        trace("attemptWrite()");
         var socket = c.socket;
         
         try
