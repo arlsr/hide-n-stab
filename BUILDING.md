@@ -44,7 +44,7 @@ The targets you want are "flash-final" for the client and "server" for the serve
 ##Troubleshooting
 
 ###[Flash network security](http://haxe.org/doc/flash/security)
-Try adding `-D network-sandbox` to the command in the Makefile that builds the flash client.
+Try adding `-Dnetwork-sandbox` to the command in the Makefile that builds the flash client.
 
 ###OpenFL issue
 In HaxePunk, edit the file `include.xml`. Find OpenFL, remove the version completely (just "<haxelib name=openfl />"), save and try again.
@@ -62,5 +62,4 @@ Run `haxelib set openfl 1.3.0` and agree to install.
 * [Getting Started with HaxePunk](http://haxepunk.com/documentation/tutorials/getting-started/)
 
 ##Credits
-Compiled by [arlsr](https://github.com/arlsr/) from comments by 	
-[bendmorris](https://github.com/bendmorris/hide-n-stab) and lucb1e @HN.
+Compiled by [arlsr](https://github.com/arlsr/) from comments by [bendmorris](https://github.com/bendmorris/hide-n-stab) and lucb1e @HN.
