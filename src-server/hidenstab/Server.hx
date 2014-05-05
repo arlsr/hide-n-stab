@@ -33,30 +33,30 @@ class Server extends ThreadServer<ClientData, ByteArray>
     }
     
     static inline var headerLength:Int = 2;
-	
-	function sendFlashPolicy(s:Socket)
-	{
-		trace("Sending flash policy");
-		sendData(s, '<?xml version="1.0"?>\n<cross-domain-policy>\n   <site-control permitted-cross-domain-policies="all"/>\n   <allow-access-from domain="*" to-ports="' + Defs.PORT + '"/>\n   <allow-http-request-headers-from domain="*" headers="*"/>\n</cross-domain-policy>\n\x00');
-	}
+    
+    function sendFlashPolicy(s:Socket)
+    {
+        trace("Sending flash policy");
+        sendData(s, '<?xml version="1.0"?>\n<cross-domain-policy>\n   <site-control permitted-cross-domain-policies="all"/>\n   <allow-access-from domain="*" to-ports="' + Defs.PORT + '"/>\n   <allow-http-request-headers-from domain="*" headers="*"/>\n</cross-domain-policy>\n\x00');
+    }
     
     override function readClientMessage(c:ClientData, buf:Bytes, pos:Int, len:Int)
     {
-		// trace("readClientMessage(..., len=" + len + ")");
-		// trace("buf: " + buf.sub(0, len).toString());
+        // trace("readClientMessage(..., len=" + len + ")");
+        // trace("buf: " + buf.sub(0, len).toString());
         var bytesConsumed = 0;
-		
-		if (buf.toString().indexOf("<policy-file-request/>") >= 0) {
-			trace("Received a policy request");
-			sendFlashPolicy(c.socket);
-			bytesConsumed = len;
-			// Don't parse message.
-			len = 0;
-		}
-		else if (!c.notPolicyRequest) {
-			c.notPolicyRequest = true;
-			spawn(c);
-		}
+        
+        if (buf.toString().indexOf("<policy-file-request/>") >= 0) {
+            trace("Received a policy request");
+            sendFlashPolicy(c.socket);
+            bytesConsumed = len;
+            // Don't parse message.
+            len = 0;
+        }
+        else if (!c.notPolicyRequest) {
+            c.notPolicyRequest = true;
+            spawn(c);
+        }
         
         while (len > 0)
         {
@@ -65,7 +65,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
             var b1:UInt = buf.get(pos);
             var b2:UInt = buf.get(pos+1);
             var waitFor:UInt = (b1 << 8) + b2;
-			
+            
             if (len > waitFor)
             {
                 var sub = buf.sub(pos+headerLength, waitFor);
@@ -84,19 +84,19 @@ class Server extends ThreadServer<ClientData, ByteArray>
             else
             {
                 c.ready = false;
-				trace("readClientMessage(): client not ready");
-				// FIXME: Infinite loop issue.
-				break;
+                trace("readClientMessage(): client not ready");
+                // FIXME: Infinite loop issue.
+                break;
             }
         }
         
-		// trace("readClientMessage(): returning");
+        // trace("readClientMessage(): returning");
         return { msg : null, bytes : bytesConsumed };
     }
     
     function readMessage(c:ClientData, msg:ByteArray)
     {
-		// trace("readMessage()");
+        // trace("readMessage()");
         var id = c.guid;
         var char = chars.get(id);
         
@@ -251,7 +251,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
     
     override function clientConnected(s:Socket):ClientData
     {
-		trace("clientConnected()");
+        trace("clientConnected()");
         if (clientCount >= 50) 
         {
             s.close();
@@ -281,7 +281,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
         c.stabber = char;
         
         // add random non-pc characters
-        for (i in 0 ... (3 + Std.random(3)))
+        for (i in 0 ... (1 + Std.random(2)))
         {
             spawnRandom();
         }
@@ -355,8 +355,8 @@ class Server extends ThreadServer<ClientData, ByteArray>
     {
         //trace("attemptWrite()");
         var socket = c.socket;
-		
-		if (!c.notPolicyRequest) return;
+        
+        if (!c.notPolicyRequest) return;
         
         try
         {

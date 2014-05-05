@@ -24,7 +24,7 @@ class ClientData {
     
     public var respawned:Bool=false;
     public var ready:Bool=true;
-	public var notPolicyRequest:Bool=false;
+    public var notPolicyRequest:Bool=false;
     
     public var lastGoodWrite:Float = 0;
     public var timeout:Float = 0;
