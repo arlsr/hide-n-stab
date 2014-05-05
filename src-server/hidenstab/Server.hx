@@ -37,19 +37,25 @@ class Server extends ThreadServer<ClientData, ByteArray>
 	function sendFlashPolicy(s:Socket)
 	{
 		trace("Sending flash policy");
-		sendData(s, '<?xml version="1.0"?>\n<cross-domain-policy>\n   <site-control permitted-cross-domain-policies="all"/>\n   <allow-access-from domain="*" to-ports="' + Defs.PORT + '"/>\n   <allow-http-request-headers-from domain="*" headers="*"/>\n</cross-domain-policy>\n');
+		sendData(s, '<?xml version="1.0"?>\n<cross-domain-policy>\n   <site-control permitted-cross-domain-policies="all"/>\n   <allow-access-from domain="*" to-ports="' + Defs.PORT + '"/>\n   <allow-http-request-headers-from domain="*" headers="*"/>\n</cross-domain-policy>\n\x00');
 	}
     
     override function readClientMessage(c:ClientData, buf:Bytes, pos:Int, len:Int)
     {
-		trace("readClientMessage(..., len=" + len + ")");
-		trace("buf: " + buf.sub(0, len).toString());
+		// trace("readClientMessage(..., len=" + len + ")");
+		// trace("buf: " + buf.sub(0, len).toString());
         var bytesConsumed = 0;
 		
 		if (buf.toString().indexOf("<policy-file-request/>") >= 0) {
 			trace("Received a policy request");
 			sendFlashPolicy(c.socket);
 			bytesConsumed = len;
+			// Don't parse message.
+			len = 0;
+		}
+		else if (!c.notPolicyRequest) {
+			c.notPolicyRequest = true;
+			spawn(c);
 		}
         
         while (len > 0)
@@ -64,7 +70,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
             {
                 var sub = buf.sub(pos+headerLength, waitFor);
                 ba = ByteArray.fromBytes(sub);
-                trace("msg length: " + waitFor);
+                // trace("msg length: " + waitFor);
                 
                 c.ready = true;
                 
@@ -90,7 +96,7 @@ class Server extends ThreadServer<ClientData, ByteArray>
     
     function readMessage(c:ClientData, msg:ByteArray)
     {
-		trace("readMessage()");
+		// trace("readMessage()");
         var id = c.guid;
         var char = chars.get(id);
         
@@ -253,14 +259,10 @@ class Server extends ThreadServer<ClientData, ByteArray>
         }
         
         s.setFastSend(true);
-		
-		sendFlashPolicy(s);
         
         var c = new ClientData(s);
         clients.set(c.guid, c);
         clientCount += 1;
-        
-        spawn(c);
         
         return c;
     }
@@ -353,6 +355,8 @@ class Server extends ThreadServer<ClientData, ByteArray>
     {
         //trace("attemptWrite()");
         var socket = c.socket;
+		
+		if (!c.notPolicyRequest) return;
         
         try
         {

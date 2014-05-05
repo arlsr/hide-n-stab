@@ -16,7 +16,7 @@ flash-final:
 	haxelib run openfl build flash -Dfinal -v
 	chromium flash.html
 flash-build:
-	haxelib run openfl build flash -Dfinal -v
+	haxelib run openfl build flash -Dfinal -Dnetwork-sandbox -v
 
 neko:
 	haxelib run openfl build linux -neko -Ddesktop -v
